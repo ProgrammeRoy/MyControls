@@ -1,0 +1,77 @@
+﻿@page "/comboCascade"
+
+    <EditForm Model="@SaleModel">
+        <!-----Genre------->
+        <div>
+            <label>Genre: @GenreId</label>
+            <InputSelectNumber class="form-control"
+                               ValueChanged="@((int value) => GenreHasChanged(value))"
+                               ValueExpression="@(()=> GenreId)"
+                               Value="@GenreId">
+                <option value="0">--Seleccionar Género--</option>
+                @foreach (var item in GenreList)
+                {
+                    @if (item.GenreId == GenreId)
+                    {
+                        <option selected value="@item.GenreId">@item.NameGenre</option>
+                    }
+                    else
+                    {
+                        <option value="@item.GenreId">@item.NameGenre</option>
+                    }
+                }
+            </InputSelectNumber>
+        </div>
+
+        <!------------------------   JUEGO  -------------------------------------->
+        <div>
+            <label>Serie: @SaleModel.SerieId</label>
+            <InputSelectNumber class="form-control"
+                               @bind-Value="@SaleModel.SerieId">
+                <option value="0">--Seleccionar Juego--</option>
+                @foreach (var item in SerieList)
+                {
+                    @if (item.SerieId == SaleModel.SerieId)
+                    {
+                        <option selected value="@item.SerieId">@item.NameSerie</option>
+                    }
+                    else
+                    {
+                        <option value="@item.SerieId">@item.NameSerie</option>
+                    }
+                }
+            </InputSelectNumber>
+        </div>
+
+    </EditForm>
+
+@code
+{
+    public Sale SaleModel { get; set; } = new Sale();
+    private int GenreId = 0;
+
+    List<Genre> GenreList = new List<Genre>();
+    List<Serie> SerieList = new List<Serie>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await (new Repository()).GetGenres();
+        GenreList = result;
+    }
+
+    private async Task GenreHasChanged(int value)
+    {
+        GenreId = value;
+        SaleModel.SerieId = 0;
+
+        if (value == 0)
+        {
+            SerieList.Clear();
+        }
+        else
+        {
+            var result = await (new Repository()).GetSeriesByGenre(value);
+            SerieList = result;
+        }
+    }
+}
